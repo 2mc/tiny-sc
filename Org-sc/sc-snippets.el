@@ -180,3 +180,6 @@ If prefix argument given, then open inspector in SC on the result"
 (add-hook 'sclang-mode-hook 'sc-snippets)
 
 ;;; sc-snippets.el ends here
+
+;;mc
+(provide 'sc-snippets-old)
