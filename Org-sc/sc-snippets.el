@@ -182,4 +182,4 @@ If prefix argument given, then open inspector in SC on the result"
 ;;; sc-snippets.el ends here
 
 ;;mc
-(provide 'sc-snippets-old)
+(provide 'sc-snippets)
