@@ -532,7 +532,7 @@ property SYNTHTREE of current section (inheritable)."
      (define-key org-mode-map (kbd "C-M-n") 'org-sc-eval-next)
      (define-key org-mode-map (kbd "C-M-p") 'org-sc-eval-previous)
      ;; this overrides the default binding org-schedule, which I do not use often:
-     (define-key org-mode-map (kbd "C-c C-s") 'sclang-main-stop)
+     ;; mc off:  (define-key org-mode-map (kbd "C-c C-s") 'sclang-main-stop)
      (define-key org-mode-map (kbd "H-C-r") 'sclang-process-registry-gui)
      (define-key org-mode-map (kbd "C-c C-M-.") 'org-sc-stop-section-processes)
 
