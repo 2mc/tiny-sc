@@ -171,7 +171,7 @@ If prefix argument given, then open inspector in SC on the result"
   (local-set-key (kbd "H-M-p") 'sclang-chuck-previous-snippet)
   (local-set-key (kbd "H-C-r") 'sclang-process-registry-gui)
   ;; C-c C-l is overrriden by sc-extensions. Therefore substitute:
-  (local-set-key (kbd "C-c l") 'sclang-recompile)
+;; mc so please overwrite it there once more and do not block org-store-link !!!  (local-set-key (kbd "C-c l") 'sclang-recompile)
   ;; additional key for convenience: provide SC-IDE shortcut for clearing buffer:
   (local-set-key (kbd "M-C") 'sclang-clear-post-buffer)
   (global-set-key (kbd "C-c C-x C-/") 'sclang-init-synth-tree))
