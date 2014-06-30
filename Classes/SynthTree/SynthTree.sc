@@ -10,7 +10,7 @@ IZ Thu, Mar  6 2014, 21:51 EET
 
 SynthTree : IdentityTree {
 
-	classvar <>showGuiAtStartup = true;
+	classvar <>showGuiAtStartup = false;
 	classvar <default;
 	classvar nameSpaces; // dictionaries holding the SynthTree instances by server
 	classvar parentEvents; // contains parent events for each server. 
@@ -32,7 +32,7 @@ SynthTree : IdentityTree {
 	// on chuck/replace
     var <>fadeTime;
 	var <>name;
-	var <>args; // TODO: args sent to synth at creation time
+	var <>args; // args sent to synth at creation time
 	var <>replaceAction = \fadeOut; // only used by addInputSynth
 
 	*initClass {
@@ -58,11 +58,23 @@ SynthTree : IdentityTree {
 			server);
 		nameSpaces[server, \root] = default;
 		ServerBootCheck add: { // most reliable way to check server boot
-				default.group = server.asTarget;
-				BufferFunc.initBuffers(server);
-				{ BufferFunc.postBufNames }.defer(1);
-				default.initTree(true);
-				this.changed(\serverBooted, server);
+			var fixNodeWatcher;
+			default.group = server.asTarget;
+			BufferFunc.initBuffers(server);
+			{ BufferFunc.postBufNames }.defer(1);
+			default.initTree(true);
+			// workaround for NodeWatcher bug reported in: 
+			// ./Notes/BugReports/NodeWatcherSkips1stRegister.scd
+			{
+				fixNodeWatcher = { Silent.ar }.play;
+				NodeWatcher.register(fixNodeWatcher);
+				0.1.wait;
+				fixNodeWatcher.free;
+				"================================================================".postln;
+				"Skipped defective first NodeWatcher register.  SynthTree ready.".postln;
+				"================================================================".postln;
+			}.fork;
+			this.changed(\serverBooted, server);
 		};
 		^server;
 	}
@@ -312,10 +324,12 @@ SynthTree : IdentityTree {
 		// guarantee that moveBefore happens AFTER the synth has really started!
 			this.addNotifierOneShot(synth, 'n_go', {
 				this do: _.moveBefore(synth);
+				// args do: _.mapIfNeeded;
 				this.changed(\started);
 			});
 		};
 		notStopped = true;
+		^synth; // used for debugging
 	}
 
 	addPatternSynth { | instrument = \default, args |
@@ -365,7 +379,7 @@ SynthTree : IdentityTree {
 		}
 	}
 
-	toggle { | argFadeTime | 
+	toggle { | argFadeTime |
 		if (this.isPlaying) {
 			this.fadeOut(this getFadeTime: argFadeTime)
 		}{
@@ -431,7 +445,7 @@ SynthTree : IdentityTree {
 		argArgs keysValuesDo: { | key, value |
 			args.storeArgValue(key, value);
 		};
-		if (synth.isPlaying) { synth.set(*argArgs) };
+		if (synth.isPlaying) {synth.set(*argArgs) };
 	}
 
 	setSynthParameter { | parameter, value |
@@ -447,6 +461,10 @@ SynthTree : IdentityTree {
 	}
 
 	get { | paramName | ^this.getParamValue(paramName) }
+
+	hasParam { | paramName |
+		^args[paramName].notNil;
+	}
 
 	getParamValue { | paramName | ^args.getParamValue(paramName) }
 	// Controls
@@ -593,16 +611,6 @@ SynthTree : IdentityTree {
 		template = template.reset(this);
 	}
 
-	/*
-	// under development
-	map { | param, curve | 
-		/*  Fade any parameter to any value(s) using a line or envelope ugen
-           on a control bus, mapped to the parameter. See MultiControl:map for details.
-		*/
-		this.getParam(param).map(curve);
-	}
-	*/
-
 	bufferList {
 		// From BufferList. Select buffer from list and play it
 		var buffers, keys;
@@ -621,7 +629,7 @@ SynthTree : IdentityTree {
 							this.stop;
 						}{
 							{ \buf.playBuf } => this.buf(view.item)
-							.set(\amp, 1)
+							// .set(\amp, 1)
 							.set(\loop, if (modifiers == 0) { 0 } { 1 });
 						}
 					},

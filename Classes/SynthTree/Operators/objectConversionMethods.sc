@@ -10,6 +10,10 @@
 
 + Symbol {
 
+	asSynthTree { | createIfMissing = true, defaultChuck |
+		^SynthTree.at(this, createIfMissing, defaultChuck);
+	}
+
 	asSynthTemplate { ^SynthDescLib.global[this].def }
 	inputSpecs { ^[] }
 
@@ -39,10 +43,6 @@
 		^(synthTree = this.asSynthTree(false)) !? { synthTree.set(*args) }
 	}
 
-	asSynthTree { | createIfMissing = true, defaultChuck |
-		^SynthTree.at(this, createIfMissing, defaultChuck);
-	}
-
 	toggle { | fadeTime |
 		^this doIfSynthTree: { | st | st.toggle(fadeTime) };
 	}
@@ -54,12 +54,11 @@
 		*/
 		^this doIfSynthTree: { | st | st.start };
 	}
-	stop {
+	stopAll {
 		/*
-		var synthTree;
-		^(synthTree = this.asSynthTree(false)) !? { synthTree.stop };		
+			Stop Edef's children, if it exists.
 		*/
-		^this doIfSynthTree: { | st | st.stop };
+		^NameSpace.doIfFound(\Edef, this, _.stopAll);
 	}
 	free {
 		^this doIfSynthTree: { | st | st.free };
@@ -120,7 +119,8 @@
 
 	buf { | bufName, paramName = \buf |
 		bufName = bufName ? this;
-		^this.asSynthTree.buf(bufName, paramName);
+		
+		//		^this.asSynthTree.buf(bufName, paramName);
 	}
 
 	fader {
@@ -148,11 +148,7 @@
             args: synthTree.synthArgs
         );
     }
-	/*
-	chuck { | symbol |
-		^symbol.asSynthTree...
-	}
-	*/
+
 	xplay { | target, outbus = 0, fadeTime = 0.02, addAction = 'addToHead', args |
 		^{ this.value.ladsrOut(fadeIn: fadeTime) }
 		.play(target, outbus, fadeTime, addAction, args);

@@ -3,8 +3,12 @@
 
 	=> { | chuckee | ^this.asEdef => chuckee }
 
+	=<> { | chuckee | ^this.st => chuckee }
+
+	>| { | chuckee | ^chuckee.asSynthTree.getParam(this).bunMap }
+
 	asPatternInstrument {
-		^PatternInstrument(PatternPlayer([], Pfunc({ ~dur.next })), this);
+		^PatternInstrument(PatternTask([], Pfunc({ ~dur.next })), this);
 	}
 
 	patternParams { | paramArray | ^this.asSynthTree.chuckPatternParams(paramArray) }
@@ -12,11 +16,11 @@
 	clearChuckPatternParams { | paramArray |
 		^this.asSynthTree.clearChuckPatternParams(paramArray);
 	}
-
+	/*
 	receiveNumberChuck { | number |
 		^this.asSynthTree setPatternDuration: number;
 	}
-
+	*/
 	receivePatternChuck { | pattern |
 		^this.asSynthTree chuck: pattern.asPatternInstrument;
 	}

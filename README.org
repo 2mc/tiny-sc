@@ -10,6 +10,10 @@ The purpose of this library is to provide simple and short solutions for some re
 
 Examples are added here after being tested.  More details about what tiny-sc sets out to do are found in files =Roadmap.org= and =BasicIdeas.org=.
 
+* Acknowledgments / Credits
+
+As of Mon, Jun  2 2014, tiny-sc contains a variant of the Utopia library making Network Music Apps.  (https://github.com/muellmusik/Utopia).  Utopia is developed by Scott Wilson on the basis of the Republic Quark by Alberto de Campo and Julian Rohrhuber.
+
 * Compatibility: chuckLib
 
 chuckLib by James Harkins (ddwChucklib Quark, see http://sourceforge.net/p/quarks/code/HEAD/tree/ and http://www.dewdrop-world.net/sc3/tutorials/index.php?id=6) uses the chuck operator (=>) in a different way.  If you want to use both chuckLib and tiny-sc at the same time, please download the chucklib_compat branch from the github repo and use it intead of the master branch. You can get the chuckLib compatible version of tiny-sc as a zipped file from:
@@ -25,6 +29,56 @@ https://github.com/iani/tiny-sc/releases/tag/chuckLib01
 
 Extensions of tiny-sc that make use other libraries are stored in a separate repository https://github.com/iani/tiny-sc-addons/
 
+* Main features
+:PROPERTIES:
+:DATE:     <2014-06-07 Sat 13:09>
+:END:
+
+=tiny-sc= provides facilities for handling of synths and patterns that are similar to those of JITlib.  Two basic classes have parallels in JITlib.  These are: =SynthTree= (similar to =Ndef=) and =Edef= (similar to =Pdef=).  A main difference from JITlib is the use of a new class =EventPattern= to play patterns, instead of =Pbind=.  This, together with new class =Edef= provide several important advantages regarding nesting and on-the-fly modification (see below).
+
+To make coding more compact and direct, instead of instantiating classes in the standard manner of SuperCollider (=SomeClass()= or =SomeClass.new(...)=), =tiny-sc= uses binary operators, and accesses named objects directly by their name as a symbol.  The default behavior of these operators is to start the playing object when applied.  So, instead of writing:
+
+#+BEGIN_EXAMPLE
+Ndef(\a, { SinOsc.ar([350, 351.3], 0, 0.2) });
+Ndef(\a).play;
+#+END_EXAMPLE
+
+one writes:
+
+: { SinOsc.ar([350, 351.3], 0, 0.2) } => \a;
+
+The meaning of operators in =tiny-sc= depends on the class of the operands in the expression.  The general rule of thumb is that when one of the operands is an event, then the operation applies to playing a pattern.  This will become clear in the following examples.
+
+** SynthTrees (similar to Ndef)
+#+BEGIN_EXAMPLE
+//: Play a Synth function in a SynthTree
+{ SinOsc.ar([350, 351.3], 0, 0.2) } => \a;
+
+//: Change the source of the SynthTree to another function
+{ SinOsc.ar(\freq.kr(440) * [1, 1.25], 0, 0.1) } => \a;
+
+//: Change the value of a control parameter
+\a.set(\freq, 550);
+
+//: Change the source again: the parameter's value is used for the new Synth:
+{ LFSaw.ar(\freq.kr(440) * [1, 1.25], 0, 0.025) } => \a;
+
+//: Change again
+{ LFNoise2.ar(\freq.kr(440), 0.25) } => \a;
+
+//: An event plays a pattern
+(degree: (0..7).pseq, dur: 0.1) => \a;
+
+//: To overwrite the previous pattern, just send another pattern
+(note: (0..11).prand / 3, dur: 0.125) => \a;
+
+//: Use operator +> to modify an existing pattern:
+(dur: Pfunc({ (0.001 exprand: 0.5).round(0.1) }), legato: 0.15) +> \a;
+
+//: Fade out
+\a.fadeOut(5);
+#+END_EXAMPLE
+
 * Basic synth handling
 
 Associating symbols with synths, starting, stopping with fadeout, replacing the stored synth in the same symbol:
@@ -33,23 +87,35 @@ Try the following, one line at a time:
 
 #+BEGIN_EXAMPLE
 // Start a synth and store it in a name
-{ WhiteNoise.ar } => \sound;
+{ WhiteNoise.ar(0.1) } => \sound;
 // Stop The sound with the default fade-out duration
 \sound.fadeOut;
 // Restart the stored sound - remake the synth.
 \sound.start;
 // Replace the synth at \sound with another one
-{ SinOsc.ar(440) } => \sound;
+{ SinOsc.ar(440, 0, 0.1) } => \sound;
 // Set the fade-in fade-out time to 0.5 seconds
 \sound.fadeTime = 5;
 // Replace again, fading-out the previous sound in 0.5 seconds
-{ PinkNoise.ar } => \sound;
+{ PinkNoise.ar(0.1) } => \sound;
 // Change the fade-time of the SynthTree in the same line:
-{ LPF.ar(GrayNoise.ar(Decay.kr(Dust.kr(10))), \freq.kr(5000)) } => \sound.fadeTime_(0.5);
+{ LPF.ar(GrayNoise.ar(0.1*Decay.kr(Dust.kr(10))), \freq.kr(5000)) } => \sound.fadeTime_(0.5);
 // Output channel can be set
-1 => ~out;
-// So can the freq or any other parameter
-250 => ~freq;  // Alternative syntax: \sound.set(\freq, 250)
+1 =>.out \sound;
+//: context-dependent shortcut:  use parameter of last synthtree as environment variable
+0 => ~out;
+//: Set frequncy, naming the synthtree: 
+1000 =>.freq \sound;
+//: Again: context dependent: ~freq is parameter of last used synthtree:
+2500 => ~freq;
+//: Another alternative syntax: 
+\sound.set(\freq, 5500);
+//: All sounds have amp parameter.  Here a clearly audible example
+{ GrayNoise.ar(0.1) } => \sound;
+//: parameter defaults to \amp
+0.03 => \sound;
+//: set back to 0.1
+0.1 => \sound
 // Fadeout with custom duration
 \sound.fadeOut(12);
 #+END_EXAMPLE
@@ -62,17 +128,17 @@ The environment variable ~fadeTime stores the global default duration for fade-i
 // Set global fade time to 3 seconds
 10 =!> \fadeTime;
 // Fade in a synth.
-{ WhiteNoise.ar } => \sound2;
+{ WhiteNoise.ar(0.1) } => \sound2;
 // Cross-fade another synth in its place
-{ SinOsc.ar(LFNoise0.kr(5).range(400, 4000)) } => \sound2;
+{ SinOsc.ar(0.1 * LFNoise0.kr(5).range(400, 4000)) } => \sound2;
 // And a third synth
-{ LPF.ar(GrayNoise.ar, LFNoise0.kr(5).range(400, 4000)) } => \sound2;
+{ LPF.ar(0.1 * GrayNoise.ar, LFNoise0.kr(5).range(400, 4000)) } => \sound2;
 // Set global fade time to 0.01 seconds
 0.01 =!> \fadeTime;
 // Notice difference in cross-fading duration
-{ LFDNoise3.ar(LFNoise0.kr(15).range(400, 4000)) } => \sound2;
+{ LFDNoise3.ar(LFNoise0.kr(15).range(400, 4000), 0.1) } => \sound2;
 // One more time
-{ SinOsc.ar(LFNoise0.kr(15).range(400, 4000)) } => \sound2;
+{ 0.1 * SinOsc.ar(LFNoise0.kr(15).range(400, 4000)) } => \sound2;
 // Fadeout also uses the global default
 \sound2.fadeOut;
 #+END_EXAMPLE
@@ -82,7 +148,7 @@ The environment variable ~fadeTime stores the global default duration for fade-i
 When a synth template gets chucked to a synthtree with =>, the parameters of that synth get pushed to the current environment.  They can then be accessed and set directly as environment variables.
 
 #+BEGIN_EXAMPLE
-{ LPF.ar(LFSaw.ar(\freq.kr(440)), \filterFreq.kr(1000)) } => \sound3;
+{ 0.1 * LPF.ar(LFSaw.ar(\freq.kr(440)), \filterFreq.kr(1000)) } => \sound3;
 // Parameters of last chucked SynthTree are in the environment.
 // Change the filter frequency:
 400 => ~filterFreq;
@@ -94,10 +160,8 @@ When a synth template gets chucked to a synthtree with =>, the parameters of tha
 
 * Playing patterns in single parameters
 
-
-
 #+BEGIN_EXAMPLE
-{ SinOsc.ar(\freq.kr(400)) } => \sound4;
+{ SinOsc.ar(\freq.kr(400), 0, 0.1) } => \sound4;
 // Play a pattern into ~freq:
 { 50.rrand(80).midicps } *> \freq;
 // Alternative formulation:
@@ -109,7 +173,7 @@ When a synth template gets chucked to a synthtree with =>, the parameters of tha
 //: Shorter formulation of the above (with different paremeter values):
 [70, 72, 76, 77].midicps.prand => [0.2, 0.4, 0.8].prand *> \freq;
 // Pattern keeps playing when new synth is chucked into tree:
-{ LPF.ar(LFPulse.ar(\freq.kr(440)), 1000) } => \sound4;
+{ 0.1 * LPF.ar(LFPulse.ar(\freq.kr(440)), 1000) } => \sound4;
 // Open knobs interface to watch how freq changes
 ~st.knobs;
 //  Play with global duration stored in ~dur:
@@ -297,9 +361,9 @@ Example 1:  Simple patching of one source to one effect:
 // Start an effects synth with a low-pass filter
 { LPF.ar(Inp.ar, \freq.kr(2000)) } => \lpf;
 // Start a WhiteNoise synth
-{ WhiteNoise.ar } => \source;
+{ WhiteNoise.ar(0.1) } => \source;
 // Send the noise synth to the filter
-\lpf =< \source;
+\source.st => \lpf;
 // Change the frequency of the low pass filter
 \lpf.set(\freq, 5000);
 #+END_EXAMPLE
@@ -308,15 +372,20 @@ Example 2: Several synths sending to one effect.
 
 #+BEGIN_EXAMPLE
 { LPF.ar(Inp.ar, LFNoise0.kr(40 ! 2).range(500, 4000)) } => \lpf;
-\lpf =< ({ PinkNoise.ar } ==> \source);
-\lpf =< ({ LFPulse.ar(LFNoise0.kr(30).range(3000, 4000)) } ==> \source2);
+{ PinkNoise.ar } |> \source2 => \lpf;
+{ LFPulse.ar(LFNoise0.kr(30).range(3000, 4000)) } => \source2;
 #+END_EXAMPLE
 
-Example 3: Changing the synths of the source and of the effect:
+Example 3: Change the synth of the source:
 
 #+BEGIN_EXAMPLE
-{ LPF.ar(Inp.ar, \freq.kr(1000)) * Decay.kr({ Dust.kr(\trigRate.kr(1)) } ! 2) } =>.5 \lpf;
-\lpf =< ({ LFTri.ar(LFNoise2.kr(12).range(400, 4000)) } ==> \source2);
+{ LPF.ar(Inp.ar, \freq.kr(1000)) * Decay.kr({ Dust.kr(\trigRate.kr(1)) } ! 2) } => \lpf;
+#+END_EXAMPLE
+
+Example 4: Change the synth of the effect:
+
+#+BEGIN_EXAMPLE
+{ LFTri.ar(LFNoise2.kr(12).range(400, 4000)) } => \source2;
 #+END_EXAMPLE
 
 Confirm that the tree can be restarted after Command-. also when it contains linked synths:
@@ -424,25 +493,13 @@ SynthTree.faders;
 
 * Buffers and samples
 
-Play a sample loaded from disk with PlayBuf (If no name is specified, the name of the receiver of =.buf= is used to find a buffer of the same name.  If no such buffer exists, then a Dialog window is opened for choosing a file to load into a buffer):
-
-#+BEGIN_EXAMPLE
-{ \buf.playBuf } => \chimes.buf.set(\amp, 1);
-#+END_EXAMPLE
-
-Play the same sample in a different synth, with different rate
-
-#+BEGIN_EXAMPLE
-{ \buf.playBuf(rate: 1.2) } => \different.buf(\chimes).set(\amp, 1);
-#+END_EXAMPLE
-
 ** BufferList autoload
 
 Setting classvar autoload of =BufferList= to =true= will make SuperCollider load all =.aiff= and =.wav= files that are found under folder =sounds= in the SuperCollider user support directory (=Platform.userAppSupportDir=) whenever the default server boots.
 
 ** Buffer list view
 
-Following opens a Buffer List view with all buffers loaded through selecting from a SynthTree as shown above, or put in the default "sounds" folder in User App Support Dir/SuperCollider
+Open a List view with all buffers loaded in BufferList:
 
 #+BEGIN_EXAMPLE
 BufferList.showList;
@@ -454,7 +511,7 @@ Keyboard commands on the Buffer List list view:
 | Key                | Action                                                       |
 |--------------------+--------------------------------------------------------------|
 | return             | play/stop selected buffer in a SynthTree named as the buffer |
-| shift-return       | like return, but set loop to 1 (loop buffer)                 |
+| shift-return       | like return, but set loop to 0 (do not loop buffer)          |
 | space, shift-space | like return, but always create new SynthTree to play in      |
 | l                  | load a new buffer from file                                  |
 | s                  | save list of loaded buffers to file                          |
@@ -675,7 +732,6 @@ loop {
 - C-H-r :: sclang-process-registry-gui
 - C-c l :: sclang-recompile
 - M-C :: sclang-clear-post-buffer
-
 
 * Triggering synths in routines
 :PROPERTIES:

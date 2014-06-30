@@ -14,7 +14,7 @@ Library.at(SynthTemplate, '---ALL---', 'auco01');
 
 Template {
 
-	classvar <>showGuiAtStartup = true;
+	classvar <>showGuiAtStartup = false;
 
 	var <name;
 	var <template;
@@ -187,5 +187,5 @@ PatternTemplates : Templates {
 }
 
 + Association {
-	asTemplate { ^PatternPlayer(key, value) }
+	asTemplate { ^PatternTask(key, value) }
 }

@@ -11,7 +11,7 @@ Adsr {
 	*new { | attackTime = 0.02, decayTime = 0.0, sustainLevel = 1, releaseTime = 0.02, 
 		peakLevel = 1, curve = -4, bias = 0, 
 		gateName = \gate, gateValue = 1,
-		ampName = \amp, ampValue = 0.1,
+		ampName = \amp, ampValue = 1,
 		doneAction = 2 |
 		^ampName.perform(\kr, ampValue) * EnvGen.kr(
 			Env.adsr(attackTime, decayTime, sustainLevel, releaseTime, peakLevel, curve, bias),
@@ -27,7 +27,7 @@ Adsr {
 Perc {
 	*new { | attackTime = 0.02, releaseTime = 1, level = 1, curve = -4, 
 		gateName = \gate, gateValue = 1,
-		ampName = \amp, ampValue = 0.1,
+		ampName = \amp, ampValue = 1,
 		doneAction = 2 |
 		^EnvGen.kr(
 			Env.perc(attackTime, releaseTime, level, curve),
@@ -43,7 +43,7 @@ Perc {
 Sine {
 	*new { | dur = 1, level = 1, 
 		gateName = \gate, gateValue = 1,
-		ampName = \amp, ampValue = 0.1,
+		ampName = \amp, ampValue = 1,
 		doneAction = 2 |
 		^EnvGen.kr(
 			Env.sine(dur, level),
@@ -65,6 +65,15 @@ Inp {
 	}
 	*kr { | inputName = \in, channelNum = 0, numChannels = 1 |
 		^In.kr(inputName.kr(channelNum), numChannels);
+	}
+}
+
+/* Note: 
+Use instead of \symbol.ar, which breaks audio linking in SynthTree and Ndef.
+*/
++ Symbol {
+	in { | channelNum, numChannels = 1 |
+		^Inp.ar(this, channelNum, numChannels)
 	}
 }
 

@@ -146,6 +146,7 @@ NamedProcess {
 		(processRegistry ?? { ProcessRegistry.default }).add(this, \n_end);
 		NodeWatcher.register(this);
 	}
+
 	stop { this.free }
 
 	onEnd { | listener, action |
@@ -154,6 +155,10 @@ NamedProcess {
 		listener.addNotifierOneShot(this, \n_end, action);
 	}
 
+	onStart { | listener, action |
+		NodeWatcher.register(this);
+		listener.addNotifierOneShot(this, \n_go, action);
+	}
 
 	// TODO:
 	/* 
