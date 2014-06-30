@@ -42,6 +42,8 @@ w = Window().front;
 		^window.front;
 	}
 
+	/* mc: next breaks common coding practice GUI.slider
+
 	slider { | name = \slider, windowName = \gui, windowFunc |
 		var window, parentLayout, layout, slider;
 		window = this.w(windowName, windowFunc).front;
@@ -65,6 +67,7 @@ w = Window().front;
 			slider;
 		})
 	}
+	*/
 }
 
 /*
