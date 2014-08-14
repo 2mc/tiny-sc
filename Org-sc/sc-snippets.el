@@ -6,19 +6,24 @@
 
 ;;; CODE:
 
+
+(defvar sclang-snippet-begin-regexp "^//:")
+(defvar sclang-snippet-end-regexp "^//*[/]:")
+
 (defun sclang-get-current-snippet ()
   "Return region between //: comments in sclang, as string,
 for evaluation after processing in Emacs."
   (save-excursion
     (let (region
           (here (point))
-          (blockstart (re-search-backward "^//:" nil t))
+          (blockstart (re-search-backward sclang-snippet-begin-regexp nil t))
           (blockend)
           (found-block-end t))
       (if (not blockstart) (setq blockstart 0))
       (set-mark blockstart)
-      (goto-char here)
-      (setq blockend (re-search-forward "^//:" nil t))
+      ;; (goto-char here)
+      (next-line)
+      (setq blockend (re-search-forward sclang-snippet-end-regexp nil t))
       (when (not blockend)
         (setq blockend (point-max))
         (setq found-block-end nil))
@@ -33,12 +38,13 @@ for evaluation after processing in Emacs."
   (interactive)
   (save-excursion
     (let ((here (point))
-          (blockstart (re-search-backward "^//:" nil t))
+          (blockstart (re-search-backward sclang-snippet-begin-regexp nil t))
           (blockend))
       (if (not blockstart) (setq blockstart 0))
       (set-mark blockstart)
-      (goto-char here)
-      (setq blockend (re-search-forward "^//:" nil t))
+      ;; (goto-char here)
+      (next-line)
+      (setq blockend (re-search-forward sclang-snippet-begin-regexp nil t))
       (if (not blockend) (setq blockend (point-max)))
       (goto-char blockend)
       (sclang-eval-region)
@@ -54,7 +60,7 @@ for evaluation after processing in Emacs."
 (defun sclang-goto-next-snippet ()
   "Go to the next region delimited with //: comment line."
   (interactive)
-  (let ((next-snippet (re-search-forward "^//:" nil t)))
+  (let ((next-snippet (re-search-forward sclang-snippet-begin-regexp nil t)))
   (if (not next-snippet) (setq next-snippet (point-max)))
   (goto-char next-snippet)
   (next-line)))
@@ -62,7 +68,7 @@ for evaluation after processing in Emacs."
 (defun sclang-goto-previous-snippet ()
   "Go to the preceding region delimited with //: comment line."
   (interactive)
-  (let ((previous-snippet (re-search-backward "^//:" nil t)))
+  (let ((previous-snippet (re-search-backward sclang-snippet-begin-regexp nil t)))
   (if (not previous-snippet) (setq previous-snippet (point-min)))
   (goto-char previous-snippet))
   (previous-line))
@@ -95,12 +101,13 @@ for evaluation after processing in Emacs."
   "Select the region between two //: comments."
   (interactive)
   (let ((here (point))
-        (blockstart (re-search-backward "^//:" nil t))
+        (blockstart (re-search-backward sclang-snippet-begin-regexp nil t))
         (blockend))
     (if (not blockstart) (setq blockstart 0))
     (set-mark blockstart)
-    (goto-char here)
-    (setq blockend (re-search-forward "^//:" nil t))
+    ;;mc:    (goto-char here)
+    (next-line) ;;mc
+    (setq blockend (re-search-forward sclang-snippet-end-regexp nil t)) ;;mc
     (if (not blockend) (setq blockend (point-max)))
     (goto-char blockend)
     (beginning-of-line)))
