@@ -22,7 +22,7 @@ for evaluation after processing in Emacs."
       (if (not blockstart) (setq blockstart 0))
       (set-mark blockstart)
       ;; (goto-char here)
-      (next-line)
+      (forward-line)
       (setq blockend (re-search-forward sclang-snippet-end-regexp nil t))
       (when (not blockend)
         (setq blockend (point-max))
@@ -37,13 +37,14 @@ for evaluation after processing in Emacs."
   "Evaluate region between //: comments in sclang."
   (interactive)
   (save-excursion
+    (end-of-line) ;; mc
     (let ((here (point))
           (blockstart (re-search-backward sclang-snippet-begin-regexp nil t))
           (blockend))
       (if (not blockstart) (setq blockstart 0))
       (set-mark blockstart)
       ;; (goto-char here)
-      (next-line)
+      (forward-line)
       (setq blockend (re-search-forward sclang-snippet-begin-regexp nil t))
       (if (not blockend) (setq blockend (point-max)))
       (goto-char blockend)
@@ -60,18 +61,20 @@ for evaluation after processing in Emacs."
 (defun sclang-goto-next-snippet ()
   "Go to the next region delimited with //: comment line."
   (interactive)
+  (end-of-line) ;; mc
   (let ((next-snippet (re-search-forward sclang-snippet-begin-regexp nil t)))
   (if (not next-snippet) (setq next-snippet (point-max)))
   (goto-char next-snippet)
-  (next-line)))
+  (forward-line)))
 
 (defun sclang-goto-previous-snippet ()
   "Go to the preceding region delimited with //: comment line."
   (interactive)
+  (end-of-line) ;; mc
   (let ((previous-snippet (re-search-backward sclang-snippet-begin-regexp nil t)))
   (if (not previous-snippet) (setq previous-snippet (point-min)))
   (goto-char previous-snippet))
-  (previous-line))
+  (forward-line -1)) ;; mc
 
 (defun sclang-execute-previous-snippet ()
   "Go to the previous sclang snippet and evaluate it."
@@ -98,19 +101,22 @@ for evaluation after processing in Emacs."
   (sclang-chuck-current-snippet))
 
 (defun sclang-select-snippet ()
-  "Select the region between two //: comments."
+  "Select the region between sclang-snippet-begin-regexp and sclang-snippet-end-regexp." ;; mc 
   (interactive)
-  (let ((here (point))
+  (end-of-line) ;; mc
+ (let ((here (point))
         (blockstart (re-search-backward sclang-snippet-begin-regexp nil t))
         (blockend))
     (if (not blockstart) (setq blockstart 0))
     (set-mark blockstart)
     ;;mc:    (goto-char here)
-    (next-line) ;;mc
+    (forward-line) ;;mc
     (setq blockend (re-search-forward sclang-snippet-end-regexp nil t)) ;;mc
     (if (not blockend) (setq blockend (point-max)))
     (goto-char blockend)
-    (beginning-of-line)))
+    ;; (beginning-of-line) ;; mc
+    (forward-line -1)
+    ))
 
 (defun sclang-process-registry-gui ()
   "Show ProcessRegistryGui window."
