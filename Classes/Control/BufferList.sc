@@ -51,16 +51,14 @@ BufferList {
 		^Platform.userAppSupportDir +/+ "BufferList.sctxar";
 	}
 
-	*loadDialog {
+	*loadFolderDialog {
 		{ | path | this.loadFolder(path) }.doPath;
 	}
 
 	*loadFolder { | path |
 		var pathname, extension, server;
-		//		[this, thisMethod.name].postln;
 		server = Server.default;
 		path ?? { path = Platform.userAppSupportDir +/+ "sounds/*" };
-		//	path.pathMatch.postln;
 		path.pathMatch do: { | filePath |
 			pathname = PathName(filePath);
 			extension = pathname.extension.asSymbol;

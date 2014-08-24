@@ -42,9 +42,7 @@ w = Window().front;
 		^window.front;
 	}
 
-	/* mc: next breaks common coding practice GUI.slider
-
-	slider { | name = \slider, windowName = \gui, windowFunc |
+	tslider { | name = \slider, windowName = \gui, windowFunc |
 		var window, parentLayout, layout, slider;
 		window = this.w(windowName, windowFunc).front;
 		^Registry(window, name, {
@@ -70,10 +68,9 @@ w = Window().front;
 	*/
 }
 
-/*
-+ Symbol {
-	slider { 
 
++ Symbol {
+	slider { | name = \slider, windowName = \gui, windowFunc |
+		^this.tslider(name, windowName, windowFunc);
 	}
 }
-*/
