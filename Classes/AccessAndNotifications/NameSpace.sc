@@ -1,14 +1,14 @@
 /*
+This version is deprecated. 
+Use class Registry instead.
+
 Experimental:
 Store / get named instances for any type in Library. 
 
+Path is limited to 2 levels.
+
+
 Type need not be a class.
-
-This is a simple two-level single-instance identity preserving scheme. 
-
-Problem: How to adjust init behavior. 
-Possible solution: Pass behavior as a function.
-Yet 2nd problem: How to code the behavior function.
 
 NameSpace(Integer, \one, { 1 } );
 NameSpace(Integer, \two, { 2 } );
