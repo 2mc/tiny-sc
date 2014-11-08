@@ -536,8 +536,9 @@ property SYNTHTREE of current section (inheritable)."
      (define-key org-mode-map (kbd "H-C-r") 'sclang-process-registry-gui)
      (define-key org-mode-map (kbd "C-c C-M-.") 'org-sc-stop-section-processes)
 
-     (define-key org-mode-map (kbd "C-c C-x l") 'org-sc-toggle-autoload)
-     (define-key org-mode-map (kbd "C-c C-x C-l") 'org-sc-load-marked)
+     ;; this also overwrite standard org keybindings
+     ;; mc off: (define-key org-mode-map (kbd "C-c C-x l") 'org-sc-toggle-autoload)
+     ;; mc off: (define-key org-mode-map (kbd "C-c C-x C-l") 'org-sc-load-marked)
      (define-key org-mode-map (kbd "H-C-o") 'org-sc-toggle-mode)))
 
 (eval-after-load "sclang"
